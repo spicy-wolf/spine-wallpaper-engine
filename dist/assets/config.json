@@ -1,0 +1,22 @@
+{
+  "width": 2048,
+  "height": 2048,
+  "meshes": [
+    {
+      "skeletonFileName": "Koharu_home.skel",
+      "atlasFileName": "Koharu_home.atlas",
+      "animationName": "Idle_01",
+      "scale": 1,
+      "position": {
+        "x": 0,
+        "y": -1000,
+        "z": -2200
+      },
+      "cursorFollow": {
+        "animationName": "Look_01_M",
+        "boneName": "Touch_Eye",
+        "maxFollowDistance": 100
+      }
+    }
+  ]
+}
