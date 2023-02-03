@@ -1,0 +1,37 @@
+{
+  "name": "spine-wallpaper-engine",
+  "version": "1.0.0",
+  "description": "play spine on wallpaper engine",
+  "main": "src/index.ts",
+  "scripts": {
+    "ci": "npm ci",
+    "format": "npx prettier --write .",
+    "start": "webpack serve --open --progress --config webpack.dev.js",
+    "build": "webpack --progress --color --config webpack.production.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spicy-wolf/spine-wallpaper-engine.git"
+  },
+  "author": "Spicy Wolf",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/spicy-wolf/spine-wallpaper-engine/issues"
+  },
+  "homepage": "https://github.com/spicy-wolf/spine-wallpaper-engine#readme",
+  "devDependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.3",
+    "prettier": "^2.8.3",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1",
+    "webpack-merge": "^5.8.0"
+  },
+  "dependencies": {
+    "threejs-spine-3.8-runtime-es6": "file:packages/threejs-spine-3.8-runtime-es6"
+  }
+}

@@ -1,0 +1,3 @@
+[submodule "packages/threejs-spine-3.8-runtime-es6"]
+	path = packages/threejs-spine-3.8-runtime-es6
+	url = https://github.com/spicy-wolf/threejs-spine-3.8-runtime-es6.git
