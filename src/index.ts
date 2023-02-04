@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as threejsSpine from 'threejs-spine-3.8-runtime-es6';
 import { Configs } from './config.type';
+import { curosrMoveSlowDownFormula } from './helper';
 
 //#region BASIC SETUP
 // Create an empty scene
@@ -160,25 +161,25 @@ const waitLoad = () => {
         );
         // the bone and its parent may not be fully ready at the start
         if (!isNaN(cursoPositionInBone.x) && !isNaN(cursoPositionInBone.y)) {
-          let cursorMoveDirection = new THREE.Vector2(
+          const cursorMove = new THREE.Vector2(
             cursoPositionInBone.x - initCursorFollowBonePositonX,
             cursoPositionInBone.y - initCursorFollowBonePositonY
           );
+          const cursorMoveDirection = cursorMove.clone().normalize();
+          const cursorMoveDistance = cursorMove.clone().length();
           const maxFollowDistance =
-            config.cursorFollow?.maxFollowDistance ?? 80;
+            config.cursorFollow?.maxFollowDistance ?? 100;
 
-          if (cursorMoveDirection.length() <= maxFollowDistance) {
-            cursorFollowBone.x = cursoPositionInBone.x;
-            cursorFollowBone.y = cursoPositionInBone.y;
-          } else {
-            cursorMoveDirection = cursorMoveDirection.normalize();
-            cursorFollowBone.x =
-              initCursorFollowBonePositonX +
-              cursorMoveDirection.x * maxFollowDistance;
-            cursorFollowBone.y =
-              initCursorFollowBonePositonY +
-              cursorMoveDirection.y * maxFollowDistance;
-          }
+          const distanceAfterSlowDown = curosrMoveSlowDownFormula(
+            cursorMoveDistance,
+            maxFollowDistance
+          );
+          cursorFollowBone.x =
+            initCursorFollowBonePositonX +
+            distanceAfterSlowDown * cursorMoveDirection.x;
+          cursorFollowBone.y =
+            initCursorFollowBonePositonY +
+            distanceAfterSlowDown * cursorMoveDirection.y;
         }
         //#endregion
 
