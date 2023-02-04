@@ -7,9 +7,12 @@ import { Configs } from './config.type';
 const scene = new THREE.Scene();
 
 // Create a basic perspective camera
-const width = window.innerWidth,
-  height = window.innerHeight;
-const camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  1,
+  3000
+);
 camera.position.x = 0;
 camera.position.y = 0;
 camera.position.z = 0;
@@ -25,7 +28,7 @@ document.body.appendChild(canvasElement);
 //#endregion
 
 //#region event register
-//window.addEventListener('resize', onWindowResize, false);
+window.addEventListener('resize', onWindowResize, false);
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
