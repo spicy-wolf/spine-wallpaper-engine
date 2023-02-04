@@ -78,7 +78,8 @@ const waitLoad = () => {
       const geometry = new THREE.BoxGeometry(100, 100, 100);
       const material = new THREE.MeshBasicMaterial({
         color: 0x000000,
-        wireframe: true,
+        opacity: 0,
+        alphaTest: 1,
       });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(
