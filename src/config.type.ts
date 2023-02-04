@@ -1,4 +1,4 @@
-export type Configs = Array<Config>;
+export type Configs = { width: number; height: number; meshes: Array<Config> };
 
 type Config = {
   skeletonFileName: string;
