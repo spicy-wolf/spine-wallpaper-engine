@@ -13,6 +13,10 @@ This is a [Spine](https://esotericsoftware.com) animation player for wallpaper e
 5. You can open the index.html to preview the animation.
 6. If everything looks good, then import your project into Wallpaper Engine. see [offical tutorial](https://docs.wallpaperengine.io/en/web/first/gettingstarted.html)
 
+## Licensing
+
+Please see [License](https://github.com/spicy-wolf/spine-wallpaper-engine/blob/main/LICENSE.txt)
+
 ## Licensing from Spine
 
 You are welcome to evaluate the Spine Runtimes and the examples we provide in this repository free of charge.

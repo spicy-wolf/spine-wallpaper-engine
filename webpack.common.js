@@ -54,8 +54,12 @@ module.exports = (env) => ({
           to: '', // default output path
         },
         {
-          from: 'LICENSE',
-          to: '', // default output path
+          from: 'LICENSE.txt',
+          to: '',
+        },
+        {
+          from: 'LICENSE.spine.txt',
+          to: '',
         },
       ],
     }),
