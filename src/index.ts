@@ -10,6 +10,7 @@ const scene = new THREE.Scene();
 const width = window.innerWidth,
   height = window.innerHeight;
 const camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
+camera.position.x = 0;
 camera.position.y = 0;
 camera.position.z = 0;
 // Create a renderer with Antialiasing
@@ -19,25 +20,26 @@ renderer.setClearColor('#000000');
 // Configure renderer size
 renderer.setSize(window.innerWidth, window.innerHeight);
 // Append Renderer to DOM
-document.body.appendChild(renderer.domElement);
+const canvasElement = renderer.domElement;
+document.body.appendChild(canvasElement);
 //#endregion
 
 //#region event register
-window.addEventListener('resize', onWindowResize, false);
+//window.addEventListener('resize', onWindowResize, false);
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-let mouseX: number = 0,
-  mouseY: number = 0;
+let cursorX: number = 0,
+  cursorY: number = 0;
 document.addEventListener('mousemove', onMouseMove, false);
 function onMouseMove(event: MouseEvent) {
   // Update the mouse variable
   event.preventDefault();
-  mouseX = (event.clientX / window.innerWidth) * 2;
-  mouseY = -(event.clientY / window.innerHeight) * 2;
+  cursorX = (event.clientX / window.innerWidth) * 2 - 1;
+  cursorY = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 //#endregion
 
@@ -47,7 +49,7 @@ function onMouseMove(event: MouseEvent) {
 let lastFrameTime = Date.now() / 1000;
 let assetManager = new threejsSpine.AssetManager('./assets/');
 let configs: Configs;
-const spineMeshes: threejsSpine.SkeletonMesh[] = [];
+const meshUpdateCallbacks: Array<(delta: number) => void> = [];
 const main = async () => {
   configs = await (await fetch('./assets/config.json')).json();
 
@@ -67,24 +69,16 @@ const main = async () => {
   });
 
   requestAnimationFrame(waitLoad);
-
-  // Create a Cube Mesh with basic material
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshBasicMaterial({ color: '#433F81' });
-  const cube = new THREE.Mesh(geometry, material);
-
-  // Add cube to Scene
-  scene.add(cube);
 };
 
 const waitLoad = () => {
   if (assetManager.isLoadingComplete()) {
     configs.forEach((config) => {
       // Add a box to the scene to which we attach the skeleton mesh
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const geometry = new THREE.BoxGeometry(100, 100, 100);
       const material = new THREE.MeshBasicMaterial({
         color: 0x000000,
-        wireframe: false,
+        wireframe: true,
       });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(
@@ -115,12 +109,73 @@ const waitLoad = () => {
         skeletonData,
         (parameters) => {
           parameters.depthTest = true;
+          parameters.depthWrite = false;
         }
       );
 
+      // set default animation on track 0
       skeletonMesh.state.setAnimation(0, config.animationName, true);
+
+      // if the animation contains a cursor follow config, then add it to track 1
+      const cursorFollowBone = config.cursorFollow?.boneName
+        ? skeletonMesh.skeleton.findBone(config.cursorFollow?.boneName)
+        : null;
+      if (config.cursorFollow?.animationName && cursorFollowBone) {
+        skeletonMesh.state.setAnimation(
+          1,
+          config.cursorFollow?.animationName,
+          true
+        );
+      }
       mesh.add(skeletonMesh);
-      spineMeshes.push(skeletonMesh);
+
+      const initCursorFollowBonePositonX = cursorFollowBone.x;
+      const initCursorFollowBonePositonY = cursorFollowBone.y;
+
+      meshUpdateCallbacks.push(function (delta: number) {
+        //#region cursor follow animation
+        const cursorPositionInDom = new THREE.Vector3(cursorX, cursorY, 0);
+        let cursoPositionInWorld = cursorPositionInDom.unproject(camera);
+        cursoPositionInWorld = cursorPositionInDom
+          .sub(camera.position)
+          .normalize();
+        cursoPositionInWorld = cursoPositionInWorld.multiplyScalar(
+          (mesh.position.z - camera.position.z) / cursoPositionInWorld.z
+        );
+
+        const cursoPositionInSpine = cursoPositionInWorld.sub(
+          new THREE.Vector3(mesh.position.x, mesh.position.y, mesh.position.z)
+        );
+
+        // use .parent !!! => http://en.esotericsoftware.com/forum/How-to-move-bone-17029
+        const cursoPositionInBone = cursorFollowBone.parent.worldToLocal(
+          new threejsSpine.Vector2(
+            cursoPositionInSpine.x,
+            cursoPositionInSpine.y
+          )
+        );
+        let cursorMoveDirection = new THREE.Vector2(
+          cursoPositionInBone.x - initCursorFollowBonePositonX,
+          cursoPositionInBone.y - initCursorFollowBonePositonY
+        );
+        const maxFollowDistance = config.cursorFollow?.maxFollowDistance ?? 80;
+        if (cursorMoveDirection.length() <= maxFollowDistance) {
+          cursorFollowBone.x = cursoPositionInBone.x;
+          cursorFollowBone.y = cursoPositionInBone.y;
+        } else {
+          cursorMoveDirection = cursorMoveDirection.normalize();
+          cursorFollowBone.x =
+            initCursorFollowBonePositonX +
+            cursorMoveDirection.x * maxFollowDistance;
+          cursorFollowBone.y =
+            initCursorFollowBonePositonY +
+            cursorMoveDirection.y * maxFollowDistance;
+        }
+        //#endregion
+
+        // the rest bone animation updates
+        skeletonMesh.update(delta);
+      });
     });
 
     requestAnimationFrame(render);
@@ -134,7 +189,7 @@ const render = () => {
   const now = Date.now() / 1000;
   const delta = now - lastFrameTime;
   lastFrameTime = now;
-  spineMeshes.forEach((mesh) => mesh.update(delta));
+  meshUpdateCallbacks.forEach((callback) => callback(delta));
   renderer.render(scene, camera);
   requestAnimationFrame(render);
 };
