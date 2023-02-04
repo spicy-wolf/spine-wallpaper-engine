@@ -154,22 +154,27 @@ const waitLoad = () => {
             cursoPositionInSpine.y
           )
         );
-        let cursorMoveDirection = new THREE.Vector2(
-          cursoPositionInBone.x - initCursorFollowBonePositonX,
-          cursoPositionInBone.y - initCursorFollowBonePositonY
-        );
-        const maxFollowDistance = config.cursorFollow?.maxFollowDistance ?? 80;
-        if (cursorMoveDirection.length() <= maxFollowDistance) {
-          cursorFollowBone.x = cursoPositionInBone.x;
-          cursorFollowBone.y = cursoPositionInBone.y;
-        } else {
-          cursorMoveDirection = cursorMoveDirection.normalize();
-          cursorFollowBone.x =
-            initCursorFollowBonePositonX +
-            cursorMoveDirection.x * maxFollowDistance;
-          cursorFollowBone.y =
-            initCursorFollowBonePositonY +
-            cursorMoveDirection.y * maxFollowDistance;
+        // the bone and its parent may not be fully ready at the start
+        if (!isNaN(cursoPositionInBone.x) && !isNaN(cursoPositionInBone.y)) {
+          let cursorMoveDirection = new THREE.Vector2(
+            cursoPositionInBone.x - initCursorFollowBonePositonX,
+            cursoPositionInBone.y - initCursorFollowBonePositonY
+          );
+          const maxFollowDistance =
+            config.cursorFollow?.maxFollowDistance ?? 80;
+
+          if (cursorMoveDirection.length() <= maxFollowDistance) {
+            cursorFollowBone.x = cursoPositionInBone.x;
+            cursorFollowBone.y = cursoPositionInBone.y;
+          } else {
+            cursorMoveDirection = cursorMoveDirection.normalize();
+            cursorFollowBone.x =
+              initCursorFollowBonePositonX +
+              cursorMoveDirection.x * maxFollowDistance;
+            cursorFollowBone.y =
+              initCursorFollowBonePositonY +
+              cursorMoveDirection.y * maxFollowDistance;
+          }
         }
         //#endregion
 
