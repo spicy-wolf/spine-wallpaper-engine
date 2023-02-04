@@ -32,6 +32,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "three": "^0.149.0",
     "threejs-spine-3.8-runtime-es6": "file:packages/threejs-spine-3.8-runtime-es6"
   }
 }
