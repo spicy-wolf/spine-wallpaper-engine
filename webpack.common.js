@@ -53,6 +53,10 @@ module.exports = (env) => ({
           from: PUBLIC_FOLDER,
           to: '', // default output path
         },
+        {
+          from: 'LICENSE',
+          to: '', // default output path
+        },
       ],
     }),
   ],
