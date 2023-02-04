@@ -11,4 +11,9 @@ type Config = {
     y: number;
     z: number;
   };
+  cursorFollow?: {
+    animationName: string;
+    boneName: string;
+    maxFollowDistance: number;
+  };
 };
