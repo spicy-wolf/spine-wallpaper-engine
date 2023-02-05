@@ -147,52 +147,61 @@ const main = async () => {
         }
         mesh.add(skeletonMesh);
 
-        const initCursorFollowBonePositonX = cursorFollowBone.x;
-        const initCursorFollowBonePositonY = cursorFollowBone.y;
+        const initCursorFollowBonePositonX = cursorFollowBone?.x ?? 0;
+        const initCursorFollowBonePositonY = cursorFollowBone?.y ?? 0;
 
         meshUpdateCallbacks.push(function (delta: number) {
           //#region cursor follow animation
-          const cursorPositionInDom = new THREE.Vector3(cursorX, cursorY, 0);
-          let cursoPositionInWorld = cursorPositionInDom.unproject(camera);
-          cursoPositionInWorld = cursorPositionInDom
-            .sub(camera.position)
-            .normalize();
-          cursoPositionInWorld = cursoPositionInWorld.multiplyScalar(
-            (mesh.position.z - camera.position.z) / cursoPositionInWorld.z
-          );
-
-          const cursoPositionInSpine = cursoPositionInWorld.sub(
-            new THREE.Vector3(mesh.position.x, mesh.position.y, mesh.position.z)
-          );
-
-          // use .parent !!! => http://en.esotericsoftware.com/forum/How-to-move-bone-17029
-          const cursoPositionInBone = cursorFollowBone.parent.worldToLocal(
-            new threejsSpine.Vector2(
-              cursoPositionInSpine.x,
-              cursoPositionInSpine.y
-            )
-          );
-          // the bone and its parent may not be fully ready at the start
-          if (!isNaN(cursoPositionInBone.x) && !isNaN(cursoPositionInBone.y)) {
-            const cursorMove = new THREE.Vector2(
-              cursoPositionInBone.x - initCursorFollowBonePositonX,
-              cursoPositionInBone.y - initCursorFollowBonePositonY
+          if (cursorFollowBone) {
+            const cursorPositionInDom = new THREE.Vector3(cursorX, cursorY, 0);
+            let cursoPositionInWorld = cursorPositionInDom.unproject(camera);
+            cursoPositionInWorld = cursorPositionInDom
+              .sub(camera.position)
+              .normalize();
+            cursoPositionInWorld = cursoPositionInWorld.multiplyScalar(
+              (mesh.position.z - camera.position.z) / cursoPositionInWorld.z
             );
-            const cursorMoveDirection = cursorMove.clone().normalize();
-            const cursorMoveDistance = cursorMove.clone().length();
-            const maxFollowDistance =
-              meshConfig.cursorFollow?.maxFollowDistance ?? 100;
 
-            const distanceAfterSlowDown = curosrMoveSlowDownFormula(
-              cursorMoveDistance,
-              maxFollowDistance
+            const cursoPositionInSpine = cursoPositionInWorld.sub(
+              new THREE.Vector3(
+                mesh.position.x,
+                mesh.position.y,
+                mesh.position.z
+              )
             );
-            cursorFollowBone.x =
-              initCursorFollowBonePositonX +
-              distanceAfterSlowDown * cursorMoveDirection.x;
-            cursorFollowBone.y =
-              initCursorFollowBonePositonY +
-              distanceAfterSlowDown * cursorMoveDirection.y;
+
+            // use .parent !!! => http://en.esotericsoftware.com/forum/How-to-move-bone-17029
+            const cursoPositionInBone = cursorFollowBone.parent.worldToLocal(
+              new threejsSpine.Vector2(
+                cursoPositionInSpine.x,
+                cursoPositionInSpine.y
+              )
+            );
+            // the bone and its parent may not be fully ready at the start
+            if (
+              !isNaN(cursoPositionInBone.x) &&
+              !isNaN(cursoPositionInBone.y)
+            ) {
+              const cursorMove = new THREE.Vector2(
+                cursoPositionInBone.x - initCursorFollowBonePositonX,
+                cursoPositionInBone.y - initCursorFollowBonePositonY
+              );
+              const cursorMoveDirection = cursorMove.clone().normalize();
+              const cursorMoveDistance = cursorMove.clone().length();
+              const maxFollowDistance =
+                meshConfig.cursorFollow?.maxFollowDistance ?? 100;
+
+              const distanceAfterSlowDown = curosrMoveSlowDownFormula(
+                cursorMoveDistance,
+                maxFollowDistance
+              );
+              cursorFollowBone.x =
+                initCursorFollowBonePositonX +
+                distanceAfterSlowDown * cursorMoveDirection.x;
+              cursorFollowBone.y =
+                initCursorFollowBonePositonY +
+                distanceAfterSlowDown * cursorMoveDirection.y;
+            }
           }
           //#endregion
 
