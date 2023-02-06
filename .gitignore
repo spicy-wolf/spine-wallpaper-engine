@@ -1,4 +1,4 @@
 dist
 node_modules
 public/assets/*
-!public/assets/README.md
+!public/assets/README*.md

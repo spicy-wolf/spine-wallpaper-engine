@@ -1,5 +1,7 @@
 # Spine on Wallpaper Engine
 
+[English](https://github.com/spicy-wolf/spine-wallpaper-engine/blob/main/README.md)
+
 ## 这是什么？
 
 这是一个[Spine](https://esotericsoftware.com)墙纸引擎的动画播放器。这是一个 Web 项目，用 Vanilla Js 构建。
@@ -9,7 +11,7 @@
 1. 下载最新版本
 2. 解压缩该版本，并将 nagivate 放入 "assets" 文件夹中
 3. 把所有相关的 Spine 文件（altas、png、skel 等）放到 "assets" 文件夹里。
-4. 在 "assets" 文件夹中添加 config.json，关于 config.json 文件结构，请参见[本文档](https://github.com/spicy-wolf/spine-wallpaper-engine/blob/main/public/assets/README.md)。
+4. 在 "assets" 文件夹中添加 config.json，关于 config.json 文件结构，请参见[本文档](https://github.com/spicy-wolf/spine-wallpaper-engine/blob/main/public/assets/README.zh.md)。
 5. 你可以打开 index.html 来预览动画。
 6. 如果一切看起来不错，然后将你的项目导入 Wallpaper Engine。见[官方教程](https://docs.wallpaperengine.io/en/web/first/gettingstarted.html)
 

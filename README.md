@@ -1,5 +1,7 @@
 # Spine on Wallpaper Engine
 
+[中文](https://github.com/spicy-wolf/spine-wallpaper-engine/blob/main/README.zh.md)
+
 ## What is it?
 
 This is a [Spine](https://esotericsoftware.com) animation player for wallpaper engine. This is a web application and build in Vanilla Js.
