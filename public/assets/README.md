@@ -8,7 +8,7 @@ For example, let's assume your animation project is called `Big_head`. Then, Spi
 
 Put all these three files here, in the same level as this README file, no extra folders
 
-## Config.json structure
+## Create a config.json file in this folder
 
 ### Template
 
