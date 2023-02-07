@@ -29,7 +29,12 @@ Put all these three files here, in the same level as this README file, no extra 
       },
       "cursorFollow": { // if there is a cursor follow feature in this animation, otherwise you can remove this section
         "animationName": <string>, // the animation name that plays cursor follow animation
-        "boneName": <string>, // when cursor moves, a bone should follow the cursor position. put the bone name here.
+        "boneName": <string>, // when cursor is moving, a bone should follow the cursor position. put the bone name here.
+        "maxFollowDistance": <number> // sometimes we don't to limit the movement distance (or range) of the bone, put the number here.
+      },
+      "cursorPress": { // if there is a cursor press feature in this animation, otherwise you can remove this section
+        "animationName": <string>, // the animation name that plays cursor press animation
+        "boneName": <string>, // when cursor is pressed and moving, a bone should follow the cursor position. put the bone name here.
         "maxFollowDistance": <number> // sometimes we don't to limit the movement distance (or range) of the bone, put the number here.
       }
     }

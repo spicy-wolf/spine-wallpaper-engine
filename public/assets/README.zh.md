@@ -31,6 +31,11 @@
         "animationName": <string>, // 光标跟踪动画名称
         "boneName": <string>, // 当光标移动的时候，骨骼会和光标一起移动。把骨骼名称放这里
         "maxFollowDistance": <number> // 光标跟踪最大距离
+      },
+      "cursorPress": {// 如果没有按住光标跟踪动画，那么可以移除这部分
+        "animationName": <string>, // 按住光标跟踪动画名称
+        "boneName": <string>, // 如果光标按住了并且移动，那么骨骼会和光标一起移动。把骨骼名称放这里
+        "maxFollowDistance": <number> // 光标跟踪最大距离
       }
     }
   ]
