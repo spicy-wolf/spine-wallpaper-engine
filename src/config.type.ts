@@ -19,6 +19,12 @@
 
 export type Configs = { width: number; height: number; meshes: Array<Config> };
 
+export type ActionAnimation = {
+  animationName: string;
+  boneName: string;
+  maxFollowDistance: number;
+};
+
 type Config = {
   skeletonFileName: string;
   jsonFileName: string;
@@ -30,9 +36,6 @@ type Config = {
     y: number;
     z: number;
   };
-  cursorFollow?: {
-    animationName: string;
-    boneName: string;
-    maxFollowDistance: number;
-  };
+  cursorFollow?: ActionAnimation;
+  cursorPress?: ActionAnimation;
 };
