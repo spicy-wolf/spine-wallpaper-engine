@@ -19,7 +19,7 @@
 
 import * as THREE from 'three';
 import * as threejsSpine from 'threejs-spine-3.8-runtime-es6';
-import { Configs } from './config.type';
+import { ActionAnimation, Configs } from './config.type';
 import { curosrMoveSlowDownFormula } from './helper';
 
 const main = async () => {
@@ -65,6 +65,102 @@ const main = async () => {
     cursorY = -(event.clientY / height) * 2 + 1;
   }
   //#endregion
+
+  /**
+   * generate a function which is executed in each render round to follow the cursor
+   *
+   * @param skeletonMesh the Spine mesh
+   * @param actionAnimationConfig cursor follow/press animation config
+   * @param skeletonData this is used to get init bone position
+   * @returns a callback function to be executed in each render
+   */
+  const generateCursorActionAnimationUpdateFunc = (
+    skeletonMesh: threejsSpine.SkeletonMesh,
+    actionAnimationConfig: ActionAnimation,
+    skeletonData: threejsSpine.SkeletonData
+  ): ((resetBonePosition?: boolean) => void) => {
+    const TRACK_NUM = 1;
+    const cursorBone = actionAnimationConfig?.boneName
+      ? skeletonMesh.skeleton.findBone(actionAnimationConfig?.boneName)
+      : null;
+    if (!actionAnimationConfig?.animationName || !cursorBone || !skeletonMesh) {
+      return;
+    }
+
+    skeletonMesh?.state.setAnimation(
+      TRACK_NUM,
+      actionAnimationConfig?.animationName,
+      true
+    );
+
+    const boneData = skeletonData.bones.find(
+      (item) => item.name === actionAnimationConfig?.boneName
+    );
+    const initCursorActionBonePositionX = boneData?.x ?? 0;
+    const initCursorActionBonePositionY = boneData?.y ?? 0;
+
+    const actionBoneUpdateCallback = (resetBonePosition?: boolean) => {
+      //#region cursor follow animation
+      const mainMesh = skeletonMesh.parent;
+      if (mainMesh && cursorBone) {
+        const cursorPositionInDom = new THREE.Vector3(cursorX, cursorY, 0);
+        let cursoPositionInWorld = cursorPositionInDom.unproject(camera);
+        cursoPositionInWorld = cursorPositionInDom
+          .sub(camera.position)
+          .normalize();
+        cursoPositionInWorld = cursoPositionInWorld.multiplyScalar(
+          (mainMesh.position.z - camera.position.z) / cursoPositionInWorld.z
+        );
+
+        const cursoPositionInSpine = cursoPositionInWorld.sub(
+          new THREE.Vector3(
+            mainMesh.position.x,
+            mainMesh.position.y,
+            mainMesh.position.z
+          )
+        );
+
+        // use .parent !!! => http://en.esotericsoftware.com/forum/How-to-move-bone-17029
+        const cursoPositionInBone = cursorBone.parent.worldToLocal(
+          new threejsSpine.Vector2(
+            cursoPositionInSpine.x,
+            cursoPositionInSpine.y
+          )
+        );
+        // the bone and its parent may not be fully ready at the start
+        if (!isNaN(cursoPositionInBone.x) && !isNaN(cursoPositionInBone.y)) {
+          const cursorMove = new THREE.Vector2(
+            cursoPositionInBone.x - initCursorActionBonePositionX,
+            cursoPositionInBone.y - initCursorActionBonePositionY
+          );
+          const cursorMoveDirection = cursorMove.clone().normalize();
+          const cursorMoveDistance = cursorMove.clone().length();
+          const maxFollowDistance =
+            actionAnimationConfig?.maxFollowDistance ?? 100;
+
+          const distanceAfterSlowDown = curosrMoveSlowDownFormula(
+            cursorMoveDistance,
+            maxFollowDistance
+          );
+
+          if (resetBonePosition) {
+            cursorBone.x = initCursorActionBonePositionX;
+            cursorBone.y = initCursorActionBonePositionY;
+          } else {
+            cursorBone.x =
+              initCursorActionBonePositionX +
+              distanceAfterSlowDown * cursorMoveDirection.x;
+            cursorBone.y =
+              initCursorActionBonePositionY +
+              distanceAfterSlowDown * cursorMoveDirection.y;
+          }
+        }
+      }
+      //#endregion
+    };
+
+    return actionBoneUpdateCallback;
+  };
 
   /**
    * start here
@@ -134,75 +230,54 @@ const main = async () => {
         // set default animation on track 0
         skeletonMesh.state.setAnimation(0, meshConfig.animationName, true);
 
-        // if the animation contains a cursor follow config, then add it to track 1
-        const cursorFollowBone = meshConfig.cursorFollow?.boneName
-          ? skeletonMesh.skeleton.findBone(meshConfig.cursorFollow?.boneName)
-          : null;
-        if (meshConfig.cursorFollow?.animationName && cursorFollowBone) {
-          skeletonMesh.state.setAnimation(
-            1,
-            meshConfig.cursorFollow?.animationName,
-            true
+        // if the animation contains a cursor follow config, by default load the cursor follow animation
+        let cursorActionAnimationUpdateFunc =
+          generateCursorActionAnimationUpdateFunc(
+            skeletonMesh,
+            meshConfig?.cursorFollow,
+            skeletonData
           );
-        }
-        mesh.add(skeletonMesh);
 
-        const initCursorFollowBonePositonX = cursorFollowBone?.x ?? 0;
-        const initCursorFollowBonePositonY = cursorFollowBone?.y ?? 0;
+        document.addEventListener(
+          'mousedown',
+          (event: MouseEvent) => {
+            event.preventDefault();
+            // reset previous bone position
+            cursorActionAnimationUpdateFunc &&
+              cursorActionAnimationUpdateFunc(true);
+            // assign a new bone control function
+            cursorActionAnimationUpdateFunc =
+              generateCursorActionAnimationUpdateFunc(
+                skeletonMesh,
+                meshConfig?.cursorPress,
+                skeletonData
+              );
+          },
+          false
+        );
+        document.addEventListener(
+          'mouseup',
+          (event: MouseEvent) => {
+            event.preventDefault();
+            // reset previous bone position
+            cursorActionAnimationUpdateFunc &&
+              cursorActionAnimationUpdateFunc(true);
+            // assign a new bone control function
+            cursorActionAnimationUpdateFunc =
+              generateCursorActionAnimationUpdateFunc(
+                skeletonMesh,
+                meshConfig?.cursorFollow,
+                skeletonData
+              );
+          },
+          false
+        );
+
+        mesh.add(skeletonMesh); // skeletonMesh.parent === mesh
 
         meshUpdateCallbacks.push(function (delta: number) {
-          //#region cursor follow animation
-          if (cursorFollowBone) {
-            const cursorPositionInDom = new THREE.Vector3(cursorX, cursorY, 0);
-            let cursoPositionInWorld = cursorPositionInDom.unproject(camera);
-            cursoPositionInWorld = cursorPositionInDom
-              .sub(camera.position)
-              .normalize();
-            cursoPositionInWorld = cursoPositionInWorld.multiplyScalar(
-              (mesh.position.z - camera.position.z) / cursoPositionInWorld.z
-            );
-
-            const cursoPositionInSpine = cursoPositionInWorld.sub(
-              new THREE.Vector3(
-                mesh.position.x,
-                mesh.position.y,
-                mesh.position.z
-              )
-            );
-
-            // use .parent !!! => http://en.esotericsoftware.com/forum/How-to-move-bone-17029
-            const cursoPositionInBone = cursorFollowBone.parent.worldToLocal(
-              new threejsSpine.Vector2(
-                cursoPositionInSpine.x,
-                cursoPositionInSpine.y
-              )
-            );
-            // the bone and its parent may not be fully ready at the start
-            if (
-              !isNaN(cursoPositionInBone.x) &&
-              !isNaN(cursoPositionInBone.y)
-            ) {
-              const cursorMove = new THREE.Vector2(
-                cursoPositionInBone.x - initCursorFollowBonePositonX,
-                cursoPositionInBone.y - initCursorFollowBonePositonY
-              );
-              const cursorMoveDirection = cursorMove.clone().normalize();
-              const cursorMoveDistance = cursorMove.clone().length();
-              const maxFollowDistance =
-                meshConfig.cursorFollow?.maxFollowDistance ?? 100;
-
-              const distanceAfterSlowDown = curosrMoveSlowDownFormula(
-                cursorMoveDistance,
-                maxFollowDistance
-              );
-              cursorFollowBone.x =
-                initCursorFollowBonePositonX +
-                distanceAfterSlowDown * cursorMoveDirection.x;
-              cursorFollowBone.y =
-                initCursorFollowBonePositonY +
-                distanceAfterSlowDown * cursorMoveDirection.y;
-            }
-          }
+          //#region cursor follow/press calculate new bone position
+          cursorActionAnimationUpdateFunc && cursorActionAnimationUpdateFunc();
           //#endregion
 
           // the rest bone animation updates
