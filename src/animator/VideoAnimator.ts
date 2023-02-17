@@ -18,14 +18,16 @@
  */
 
 import * as THREE from 'three';
-import { VideoMeshConfig } from './config.type';
-import { ASSET_PATH } from './constants';
+import { VideoMeshConfig } from '@src/config.type';
+import { ASSET_PATH } from '@src/constants';
+import * as Scene from '@src/initScene';
 
-/**
- * from example: https://stemkoski.github.io/Three.js/Texture-Animation.html
- */
 export class VideoAnimator {
-  constructor(meshConfig: VideoMeshConfig, scene: THREE.Scene) {
+  /**
+   *
+   * @param meshConfig
+   */
+  constructor(meshConfig: VideoMeshConfig) {
     if (!meshConfig.videoFileName) {
       throw 'missing video file name';
     }
@@ -61,8 +63,10 @@ export class VideoAnimator {
       meshConfig?.position?.y ?? 0,
       meshConfig?.position?.z ?? -1000
     );
-    scene.add(videoScreenMesh);
+    Scene.scene?.add(videoScreenMesh);
   }
 
-  public update = (milliSec: number) => {};
+  public update = (delta: number) => {
+    const milliSec = 1000 * delta;
+  };
 }
