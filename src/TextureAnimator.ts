@@ -63,11 +63,16 @@ export class TextureAnimator {
   }
 
   public update = (milliSec: number) => {
+    // if display time is zero for each tile, then no animation
+    if (this.tileDisplayDuration === 0) {
+      return;
+    }
+
     this.currentDisplayTime += milliSec;
     while (this.currentDisplayTime > this.tileDisplayDuration) {
       this.currentDisplayTime -= this.tileDisplayDuration;
       this.currentTile++;
-      if (this.currentTile == this.numberOfTiles) this.currentTile = 0;
+      if (this.currentTile === this.numberOfTiles) this.currentTile = 0;
       var currentColumn = this.currentTile % this.tilesHorizontal;
       this.texture.offset.x = currentColumn / this.tilesHorizontal;
       var currentRow = Math.floor(this.currentTile / this.tilesHorizontal);
