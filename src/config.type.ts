@@ -20,7 +20,7 @@
 export type Configs = {
   width: number;
   height: number;
-  meshes: Array<SpineMeshConfig | TextureMeshConfig>;
+  meshes: Array<SpineMeshConfig | TextureMeshConfig | VideoMeshConfig>;
 };
 
 export type ActionAnimation = {
@@ -57,4 +57,11 @@ export type TextureMeshConfig = MeshConfig & {
   tilesVertical: number;
   numTiles: number;
   tileDisplayDuration: number;
+};
+
+export type VideoMeshConfig = MeshConfig & {
+  type: 'video';
+  width: number;
+  height: number;
+  videoFileName: string;
 };

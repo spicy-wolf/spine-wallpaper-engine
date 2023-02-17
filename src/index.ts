@@ -20,8 +20,10 @@
 import * as THREE from 'three';
 import * as threejsSpine from 'threejs-spine-3.8-runtime-es6';
 import { ActionAnimation, Configs } from './config.type';
+import { ASSET_PATH } from './constants';
 import { curosrMoveSlowDownFormula } from './helper';
 import { TextureAnimator } from './TextureAnimator';
+import { VideoAnimator } from './VideoAnimator';
 
 const main = async () => {
   const configs: Configs = await (await fetch('./assets/config.json')).json();
@@ -167,7 +169,6 @@ const main = async () => {
    * start here
    */
   let lastFrameTime = Date.now() / 1000;
-  const ASSET_PATH: string = './assets/';
   const spineAssetManager = new threejsSpine.AssetManager(ASSET_PATH);
   const threeAssetList: { [path: string]: THREE.Texture } = {};
   const meshUpdateCallbacks: Array<(delta: number) => void> = [];
@@ -381,6 +382,13 @@ const main = async () => {
             meshUpdateCallbacks.push(function (delta: number) {
               textureAnimator.update(1000 * delta);
             });
+            break;
+          }
+          case 'video': {
+            const videoAnimator = new VideoAnimator(meshConfig, scene);
+            // meshUpdateCallbacks.push(function (delta: number) {
+            //   videoAnimator.update(1000 * delta);
+            // });
             break;
           }
           default:
