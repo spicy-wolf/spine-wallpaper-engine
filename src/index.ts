@@ -209,13 +209,17 @@ const main = async () => {
           | threejsSpine.SkeletonBinary;
         if (meshConfig.jsonFileName) {
           skeletonJsonOrBinary = new threejsSpine.SkeletonJson(atlasLoader);
-        } else {
+        } else if (meshConfig.skeletonFileName) {
           skeletonJsonOrBinary = new threejsSpine.SkeletonBinary(atlasLoader);
+        } else {
+          throw 'please provide a skeleton file';
         }
 
         skeletonJsonOrBinary.scale = meshConfig.scale ?? 1;
         const skeletonData = skeletonJsonOrBinary.readSkeletonData(
-          assetManager.get(meshConfig.skeletonFileName)
+          assetManager.get(
+            meshConfig.jsonFileName ?? meshConfig.skeletonFileName
+          )
         );
 
         // Create a SkeletonMesh from the data and attach it to the scene

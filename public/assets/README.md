@@ -6,6 +6,12 @@ For example, let's assume your animation project is called `Big_head`. Then, Spi
 - Big_head.png
 - Big_head.skel
 
+or
+
+- Big_head.altas
+- Big_head.png
+- Big_head.json
+
 Put all these three files here, in the same level as this README file, no extra folders
 
 ## Create a config.json file in this folder
@@ -18,8 +24,9 @@ Put all these three files here, in the same level as this README file, no extra 
   "height": <number>, // the height of the canvas
   "meshes": [ // this is an array. you may have more than one animations, e.g. one is for background, another one is for your charactor
     {
-      "skeletonFileName": <string>, // your skeleton file name, the extension name should be ".skel",
-      "atlasFileName": <string>, // your atlas file name, the extension name should be ".atlas",
+      "skeletonFileName": <string>, // your skeleton file name in binary, the extension name should be ".skel"
+      "jsonFileName": <string>, // your skeleton file name in json, the extension name should be ".json"
+      "atlasFileName": <string>, // your atlas file name, the extension name should be ".atlas"
       "animationName": <string>, // the animation name you want to play
       "scale": <number>, // the size of your animation, usually should be 1
       "position": { // the position of your animation in canvas
@@ -41,6 +48,10 @@ Put all these three files here, in the same level as this README file, no extra 
   ]
 }
 ```
+
+Note:
+
+- you only need to provide either `skeletonFileName` or `jsonFileName`. If `skeletonFileName` is given, then `jsonFileName` can be empty, and vice versa.
 
 ### Example:
 
