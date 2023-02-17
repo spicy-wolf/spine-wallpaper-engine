@@ -24,6 +24,7 @@ Put all these three files here, in the same level as this README file, no extra 
   "height": <number>, // the height of the canvas
   "meshes": [ // this is an array. you may have more than one animations, e.g. one is for background, another one is for your charactor
     {
+      "type": "spine", // use "spine" for spine animation
       "skeletonFileName": <string>, // your skeleton file name in binary, the extension name should be ".skel"
       "jsonFileName": <string>, // your skeleton file name in json, the extension name should be ".json"
       "atlasFileName": <string>, // your atlas file name, the extension name should be ".atlas"
@@ -53,7 +54,7 @@ Note:
 
 - you only need to provide either `skeletonFileName` or `jsonFileName`. If `skeletonFileName` is given, then `jsonFileName` can be empty, and vice versa.
 
-### Example:
+#### Example:
 
 Let's assume your animation project is called `Big_head`, and this animation also contains `Road_background` project as a background animation.
 The user can also use cursor to control the direction of `Big_head`, and the bone name is `Move_Head`
@@ -66,6 +67,7 @@ In this case, your config maybe like:
   "height": 2048,
   "meshes": [
     {
+      "type": "spine",
       "skeletonFileName": "Road_background.skel",
       "atlasFileName": "Road_background.atlas",
       "animationName": "Idle_Default",
@@ -77,6 +79,7 @@ In this case, your config maybe like:
       }
     },
     {
+      "type": "spine",
       "skeletonFileName": "Big_head.skel",
       "atlasFileName": "Big_head.atlas",
       "animationName": "Idle_Default",
@@ -96,3 +99,30 @@ In this case, your config maybe like:
 }
 
 ```
+
+## Animated Texture Type
+
+The `meshes` array can also contains other type of animations or static images
+
+### Template
+
+```
+{
+  "type": "texture", // for static image or animated texture, use "texture"
+  "scale": <number>, // the size of your texture, usually should be 1
+  "position": { // the position of your animation in canvas
+    "x": <number>,
+    "y": <number>,
+    "z": <a negative number> // Note: the camera is on (0,0,0), so z should be a nagative value
+  },
+  "width": <number>, // texture display width
+  "height": <number>, // texture display height
+  "textureFileName": <string>, // texture file name
+  "tilesHorizontal": <number>, // number of tiles horizontally
+  "tilesVertical": <number>, // number of tiles vertically
+  "numTiles": <number>, // total number of tiles
+  "tileDisplayDuration": <number> // how long should each tile be displayed
+}
+```
+
+Note: If want to display a static image, then set `tileDisplayDuration` to 0.

@@ -24,6 +24,7 @@ or
   "height": <number>, // 画布的高度
   "meshes": [ // 这是一个数组类型。当你需要多个动画叠加。比如说，一个是背景，一个是人物
     {
+      "type": "spine", // spine动画
       "skeletonFileName": <string>, // 骨骼文件名称，扩展名是".skel"
       "jsonFileName": <string>, // 骨骼文件名称，扩展名是".json"
       "atlasFileName": <string>, // 皮肤配置文件名称，扩展名是".atlas"
@@ -53,7 +54,7 @@ or
 
 - skeletonFileName 和 jsonFileName 提供一个就可以。如果提供了 skeletonFileName 值，那么 jsonFileName 项就可以留空或者直接删掉。反之亦然。
 
-### 例子:
+#### 例子:
 
 我们假设你的动画项目叫做`Big_head`。并且，这个动画包含了`Road_background`项目作为背景动画。
 同时，用户也可以用光标来控制`Big_head`的方向，骨骼的名称是`Move_Head`。
@@ -66,6 +67,7 @@ or
   "height": 2048,
   "meshes": [
     {
+      "type": "spine",
       "skeletonFileName": "Road_background.skel",
       "atlasFileName": "Road_background.atlas",
       "animationName": "Idle_Default",
@@ -77,6 +79,7 @@ or
       }
     },
     {
+      "type": "spine",
       "skeletonFileName": "Big_head.skel",
       "atlasFileName": "Big_head.atlas",
       "animationName": "Idle_Default",
@@ -96,3 +99,30 @@ or
 }
 
 ```
+
+## 纹理动画类型
+
+`meshes` 数组也可以包含纹理动画或者静态图片
+
+### 模板
+
+```
+{
+  "type": "texture", // 纹理动画或者静态图片，请填 "texture"
+  "scale": <number>, // 动画的大小， 默认是 1
+  "position": { // 动画的位置
+    "x": <number>,
+    "y": <number>,
+    "z": <a negative number> // 注意：镜头的位置在 (0,0,0), 所以z轴的坐标应该是复数
+  },
+  "width": <number>, // 显示宽度
+  "height": <number>, // 显示高度
+  "textureFileName": <string>, // 纹理文件名字
+  "tilesHorizontal": <number>, // 横着动画帧的数量
+  "tilesVertical": <number>, // 竖着动画帧的数量
+  "numTiles": <number>, // 总共动画帧的数量
+  "tileDisplayDuration": <number> // 每一帧播放多久
+}
+```
+
+备注：如果要显示一张静态图片，那么 `tileDisplayDuration` 的值是 0。
