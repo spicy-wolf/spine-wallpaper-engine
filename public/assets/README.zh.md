@@ -6,6 +6,12 @@
 - Big_head.png
 - Big_head.skel
 
+or
+
+- Big_head.altas
+- Big_head.png
+- Big_head.json
+
 把这三个文件放进这个文件夹里，和这个 README 文件在同一个等级，不需要创建额外的文件夹。
 
 ## 在这个文件夹里创建一个 config.json
@@ -18,8 +24,9 @@
   "height": <number>, // 画布的高度
   "meshes": [ // 这是一个数组类型。当你需要多个动画叠加。比如说，一个是背景，一个是人物
     {
-      "skeletonFileName": <string>, // 骨骼文件名称，扩展名是".skel",
-      "atlasFileName": <string>, // 皮肤配置文件名称，扩展名是".atlas",
+      "skeletonFileName": <string>, // 骨骼文件名称，扩展名是".skel"
+      "jsonFileName": <string>, // 骨骼文件名称，扩展名是".json"
+      "atlasFileName": <string>, // 皮肤配置文件名称，扩展名是".atlas"
       "animationName": <string>, // 动画名称
       "scale": <number>, // 动画的大小，通常来说值是 1
       "position": { // 画布的位置
@@ -41,6 +48,10 @@
   ]
 }
 ```
+
+备注：
+
+- skeletonFileName 和 jsonFileName 提供一个就可以。如果提供了 skeletonFileName 值，那么 jsonFileName 项就可以留空或者直接删掉。反之亦然。
 
 ### 例子:
 
