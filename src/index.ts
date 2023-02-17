@@ -21,6 +21,7 @@ import * as THREE from 'three';
 import * as threejsSpine from 'threejs-spine-3.8-runtime-es6';
 import { ActionAnimation, Configs } from './config.type';
 import { curosrMoveSlowDownFormula } from './helper';
+import { TextureAnimator } from './TextureAnimator';
 
 const main = async () => {
   const configs: Configs = await (await fetch('./assets/config.json')).json();
@@ -166,127 +167,225 @@ const main = async () => {
    * start here
    */
   let lastFrameTime = Date.now() / 1000;
-  let assetManager = new threejsSpine.AssetManager('./assets/');
+  const ASSET_PATH: string = './assets/';
+  const spineAssetManager = new threejsSpine.AssetManager(ASSET_PATH);
+  const threeAssetList: { [path: string]: THREE.Texture } = {};
   const meshUpdateCallbacks: Array<(delta: number) => void> = [];
 
+  /**
+   * loader
+   */
   configs?.meshes?.forEach((meshConfig) => {
-    // load scheleton
-    if (meshConfig.skeletonFileName) {
-      assetManager.loadBinary(meshConfig.skeletonFileName);
-    } else if (meshConfig.jsonFileName) {
-      assetManager.loadText(meshConfig.jsonFileName);
-    } else {
-      throw 'missing skeleton file';
-    }
-    // load atlas
-    if (meshConfig.atlasFileName) {
-      assetManager.loadTextureAtlas(meshConfig.atlasFileName);
+    switch (meshConfig?.type) {
+      case 'spine': {
+        // load scheleton
+        if (meshConfig.skeletonFileName) {
+          spineAssetManager.loadBinary(meshConfig.skeletonFileName);
+        } else if (meshConfig.jsonFileName) {
+          spineAssetManager.loadText(meshConfig.jsonFileName);
+        } else {
+          throw 'missing skeleton file';
+        }
+        // load atlas
+        if (meshConfig.atlasFileName) {
+          spineAssetManager.loadTextureAtlas(meshConfig.atlasFileName);
+        }
+        break;
+      }
+      case 'texture': {
+        if (!meshConfig.textureFileName) {
+          throw 'missing texture file path';
+        }
+        if (!!threeAssetList[meshConfig.textureFileName]) {
+          // texture has been loaded, skip
+          break;
+        }
+        threeAssetList[meshConfig.textureFileName] = null;
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load(
+          ASSET_PATH + meshConfig.textureFileName,
+          // onLoad callback
+          (texture: THREE.Texture) => {
+            threeAssetList[meshConfig.textureFileName] = texture;
+          },
+          // onProgress callback currently not supported
+          undefined,
+          // onError callback
+          (err: ErrorEvent) => {
+            console.error('An error happened.');
+          }
+        );
+        break;
+      }
+      default:
+        break;
     }
   });
 
+  /**
+   * when everthing is fully loaded, setup each animation update() function
+   */
   const waitLoad = () => {
-    if (assetManager.isLoadingComplete()) {
+    // if spine assets are loaded and three assets are also loaded
+    if (
+      spineAssetManager.isLoadingComplete() &&
+      !Object.entries(threeAssetList).some(([assetPath, texture]) => !texture)
+    ) {
       configs?.meshes?.forEach((meshConfig) => {
-        // Add a box to the scene to which we attach the skeleton mesh
-        const geometry = new THREE.BoxGeometry(100, 100, 100);
-        const material = new THREE.MeshBasicMaterial({
-          color: 0x000000,
-          opacity: 0,
-          alphaTest: 1,
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(
-          meshConfig?.position?.x ?? 0,
-          meshConfig?.position?.y ?? 0,
-          meshConfig?.position?.z ?? 0
-        );
-        scene.add(mesh);
+        switch (meshConfig.type) {
+          case 'spine': {
+            // Add a box to the scene to which we attach the skeleton mesh
+            const geometry = new THREE.BoxGeometry(100, 100, 100);
+            const material = new THREE.MeshBasicMaterial({
+              color: 0x000000,
+              opacity: 0,
+              alphaTest: 1,
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+              meshConfig?.position?.x ?? 0,
+              meshConfig?.position?.y ?? 0,
+              meshConfig?.position?.z ?? 0
+            );
+            scene.add(mesh);
 
-        const atlas = assetManager.get(meshConfig.atlasFileName);
-        const atlasLoader = new threejsSpine.AtlasAttachmentLoader(atlas);
-        let skeletonJsonOrBinary:
-          | threejsSpine.SkeletonJson
-          | threejsSpine.SkeletonBinary;
-        if (meshConfig.jsonFileName) {
-          skeletonJsonOrBinary = new threejsSpine.SkeletonJson(atlasLoader);
-        } else if (meshConfig.skeletonFileName) {
-          skeletonJsonOrBinary = new threejsSpine.SkeletonBinary(atlasLoader);
-        } else {
-          throw 'please provide a skeleton file';
-        }
-
-        skeletonJsonOrBinary.scale = meshConfig.scale ?? 1;
-        const skeletonData = skeletonJsonOrBinary.readSkeletonData(
-          assetManager.get(
-            meshConfig.jsonFileName ?? meshConfig.skeletonFileName
-          )
-        );
-
-        // Create a SkeletonMesh from the data and attach it to the scene
-        const skeletonMesh = new threejsSpine.SkeletonMesh(
-          skeletonData,
-          (parameters) => {
-            parameters.depthTest = true;
-            parameters.depthWrite = false;
-          }
-        );
-
-        // set default animation on track 0
-        skeletonMesh.state.setAnimation(0, meshConfig.animationName, true);
-
-        // if the animation contains a cursor follow config, by default load the cursor follow animation
-        let cursorActionAnimationUpdateFunc =
-          generateCursorActionAnimationUpdateFunc(
-            skeletonMesh,
-            meshConfig?.cursorFollow,
-            skeletonData
-          );
-
-        document.addEventListener(
-          'mousedown',
-          (event: MouseEvent) => {
-            event.preventDefault();
-            // reset previous bone position
-            cursorActionAnimationUpdateFunc &&
-              cursorActionAnimationUpdateFunc(true);
-            // assign a new bone control function
-            cursorActionAnimationUpdateFunc =
-              generateCursorActionAnimationUpdateFunc(
-                skeletonMesh,
-                meshConfig?.cursorPress,
-                skeletonData
+            const atlas = spineAssetManager.get(meshConfig.atlasFileName);
+            const atlasLoader = new threejsSpine.AtlasAttachmentLoader(atlas);
+            let skeletonJsonOrBinary:
+              | threejsSpine.SkeletonJson
+              | threejsSpine.SkeletonBinary;
+            if (meshConfig.jsonFileName) {
+              skeletonJsonOrBinary = new threejsSpine.SkeletonJson(atlasLoader);
+            } else if (meshConfig.skeletonFileName) {
+              skeletonJsonOrBinary = new threejsSpine.SkeletonBinary(
+                atlasLoader
               );
-          },
-          false
-        );
-        document.addEventListener(
-          'mouseup',
-          (event: MouseEvent) => {
-            event.preventDefault();
-            // reset previous bone position
-            cursorActionAnimationUpdateFunc &&
-              cursorActionAnimationUpdateFunc(true);
-            // assign a new bone control function
-            cursorActionAnimationUpdateFunc =
+            } else {
+              throw 'please provide a skeleton file';
+            }
+
+            skeletonJsonOrBinary.scale = meshConfig.scale ?? 1;
+            const skeletonData = skeletonJsonOrBinary.readSkeletonData(
+              spineAssetManager.get(
+                meshConfig.jsonFileName ?? meshConfig.skeletonFileName
+              )
+            );
+
+            // Create a SkeletonMesh from the data and attach it to the scene
+            const skeletonMesh = new threejsSpine.SkeletonMesh(
+              skeletonData,
+              (parameters) => {
+                parameters.depthTest = true;
+                parameters.depthWrite = false;
+              }
+            );
+
+            // set default animation on track 0
+            skeletonMesh.state.setAnimation(0, meshConfig.animationName, true);
+
+            // if the animation contains a cursor follow config, by default load the cursor follow animation
+            let cursorActionAnimationUpdateFunc =
               generateCursorActionAnimationUpdateFunc(
                 skeletonMesh,
                 meshConfig?.cursorFollow,
                 skeletonData
               );
-          },
-          false
-        );
 
-        mesh.add(skeletonMesh); // skeletonMesh.parent === mesh
+            document.addEventListener(
+              'mousedown',
+              (event: MouseEvent) => {
+                event.preventDefault();
+                // reset previous bone position
+                cursorActionAnimationUpdateFunc &&
+                  cursorActionAnimationUpdateFunc(true);
+                // assign a new bone control function
+                cursorActionAnimationUpdateFunc =
+                  generateCursorActionAnimationUpdateFunc(
+                    skeletonMesh,
+                    meshConfig?.cursorPress,
+                    skeletonData
+                  );
+              },
+              false
+            );
+            document.addEventListener(
+              'mouseup',
+              (event: MouseEvent) => {
+                event.preventDefault();
+                // reset previous bone position
+                cursorActionAnimationUpdateFunc &&
+                  cursorActionAnimationUpdateFunc(true);
+                // assign a new bone control function
+                cursorActionAnimationUpdateFunc =
+                  generateCursorActionAnimationUpdateFunc(
+                    skeletonMesh,
+                    meshConfig?.cursorFollow,
+                    skeletonData
+                  );
+              },
+              false
+            );
 
-        meshUpdateCallbacks.push(function (delta: number) {
-          //#region cursor follow/press calculate new bone position
-          cursorActionAnimationUpdateFunc && cursorActionAnimationUpdateFunc();
-          //#endregion
+            mesh.add(skeletonMesh); // skeletonMesh.parent === mesh
 
-          // the rest bone animation updates
-          skeletonMesh.update(delta);
-        });
+            meshUpdateCallbacks.push(function (delta: number) {
+              //#region cursor follow/press calculate new bone position
+              cursorActionAnimationUpdateFunc &&
+                cursorActionAnimationUpdateFunc();
+              //#endregion
+
+              // the rest bone animation updates
+              skeletonMesh.update(delta);
+            });
+            break;
+          }
+          case 'texture': {
+            const texture = threeAssetList[meshConfig.textureFileName];
+            if (!texture) {
+              console.error(meshConfig, 'does not fully loaded');
+              break;
+            }
+            var material = new THREE.MeshBasicMaterial({
+              map: texture,
+              side: THREE.DoubleSide,
+              alphaTest: 1,
+            });
+            var geometry = new THREE.PlaneGeometry(
+              meshConfig?.width,
+              meshConfig?.height,
+              1,
+              1
+            );
+            geometry.scale(
+              meshConfig.scale ?? 1,
+              meshConfig.scale ?? 1,
+              meshConfig.scale ?? 1
+            );
+            var textureMesh = new THREE.Mesh(geometry, material);
+            textureMesh.position.set(
+              meshConfig?.position?.x,
+              meshConfig?.position?.y,
+              meshConfig?.position?.z
+            );
+            scene.add(textureMesh);
+
+            // create animator
+            const textureAnimator = new TextureAnimator(
+              texture,
+              meshConfig.tilesHorizontal,
+              meshConfig.tilesVertical,
+              meshConfig.numTiles,
+              meshConfig.tileDisplayDuration
+            );
+
+            meshUpdateCallbacks.push(function (delta: number) {
+              textureAnimator.update(1000 * delta);
+            });
+            break;
+          }
+          default:
+            break;
+        }
       });
 
       requestAnimationFrame(render);

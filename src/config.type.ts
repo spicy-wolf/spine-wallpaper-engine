@@ -17,7 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export type Configs = { width: number; height: number; meshes: Array<Config> };
+export type Configs = {
+  width: number;
+  height: number;
+  meshes: Array<SpineMeshConfig | TextureMeshConfig>;
+};
 
 export type ActionAnimation = {
   animationName: string;
@@ -25,17 +29,32 @@ export type ActionAnimation = {
   maxFollowDistance: number;
 };
 
-type Config = {
-  skeletonFileName: string;
-  jsonFileName: string;
-  atlasFileName: string;
-  animationName: string;
+type MeshConfig = {
   scale: number;
   position: {
     x: number;
     y: number;
     z: number;
   };
+};
+
+export type SpineMeshConfig = MeshConfig & {
+  type: 'spine';
+  skeletonFileName: string;
+  jsonFileName: string;
+  atlasFileName: string;
+  animationName: string;
   cursorFollow?: ActionAnimation;
   cursorPress?: ActionAnimation;
+};
+
+export type TextureMeshConfig = MeshConfig & {
+  type: 'texture';
+  width: number;
+  height: number;
+  textureFileName: string;
+  tilesHorizontal: number;
+  tilesVertical: number;
+  numTiles: number;
+  tileDisplayDuration: number;
 };
