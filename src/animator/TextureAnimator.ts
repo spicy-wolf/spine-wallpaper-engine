@@ -18,6 +18,8 @@
  */
 
 import * as THREE from 'three';
+import { TextureMeshConfig } from '@src/config.type';
+import * as Scene from '@src/initScene';
 
 /**
  * from example: https://stemkoski.github.io/Three.js/Texture-Animation.html
@@ -33,24 +35,42 @@ export class TextureAnimator {
 
   /**
    *
-   * @param texture see THREE.texture
-   * @param tilesHorizontal number of tiles horizontally
-   * @param tilesVertical number of tiles vertically
-   * @param numTiles total number of tiles
-   * @param tileDisplayDuration how long should each image be displayed
+   * @param meshConfig
+   * @param texture
    */
-  constructor(
-    texture: THREE.Texture,
-    tilesHorizontal: number,
-    tilesVertical: number,
-    numTiles: number,
-    tileDisplayDuration: number
-  ) {
+  constructor(meshConfig: TextureMeshConfig, texture: THREE.Texture) {
+    if (!texture) {
+      throw 'texture does not fully loaded';
+    }
+    var material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+      alphaTest: 1,
+    });
+    var geometry = new THREE.PlaneGeometry(
+      meshConfig?.width,
+      meshConfig?.height,
+      1,
+      1
+    );
+    geometry.scale(
+      meshConfig.scale ?? 1,
+      meshConfig.scale ?? 1,
+      meshConfig.scale ?? 1
+    );
+    var textureMesh = new THREE.Mesh(geometry, material);
+    textureMesh.position.set(
+      meshConfig?.position?.x ?? 0,
+      meshConfig?.position?.y ?? 0,
+      meshConfig?.position?.z ?? -1000
+    );
+    Scene.scene?.add(textureMesh);
+
     this.texture = texture;
-    this.tilesHorizontal = tilesHorizontal;
-    this.tilesVertical = tilesVertical;
-    this.numberOfTiles = numTiles;
-    this.tileDisplayDuration = tileDisplayDuration;
+    this.tilesHorizontal = meshConfig?.tilesHorizontal ?? 1;
+    this.tilesVertical = meshConfig?.tilesVertical ?? 1;
+    this.numberOfTiles = meshConfig?.numTiles ?? 1;
+    this.tileDisplayDuration = meshConfig?.tileDisplayDuration ?? 0;
 
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(1 / this.tilesHorizontal, 1 / this.tilesVertical);
@@ -62,7 +82,8 @@ export class TextureAnimator {
     this.currentTile = 0;
   }
 
-  public update = (milliSec: number) => {
+  public update = (delta: number) => {
+    const milliSec = 1000 * delta;
     // if display time is zero for each tile, then no animation
     if (this.tileDisplayDuration === 0) {
       return;
