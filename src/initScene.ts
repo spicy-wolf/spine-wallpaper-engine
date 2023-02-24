@@ -62,8 +62,8 @@ export const initScene = (configs: Configs) => {
   function onMouseMove(event: MouseEvent) {
     // Update the mouse variable
     event.preventDefault();
-    cursorX = (event.clientX / width) * 2 - 1;
-    cursorY = -(event.clientY / height) * 2 + 1;
+    cursorX = (event.clientX / window.innerWidth) * 2 - 1;
+    cursorY = -(event.clientY / window.innerHeight) * 2 + 1;
   }
   //#endregion
 };
