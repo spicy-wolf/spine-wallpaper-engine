@@ -102,7 +102,7 @@ In this case, your config maybe like:
 
 ## Animated Texture Type
 
-The `meshes` array can also contains other type of animations or static images
+The `meshes` array can also contain other type of animations or static images
 
 ### Template
 
@@ -126,3 +126,24 @@ The `meshes` array can also contains other type of animations or static images
 ```
 
 Note: If want to display a static image, then set `tileDisplayDuration` to 0.
+
+## Video Type
+
+The `meshes` array can also play videos
+
+### Template
+
+```
+{
+  "type": "video", // for video type, use "video"
+  "scale": <number>, // the size of your video, usually should be 1
+  "position": { // the position of your video in canvas
+    "x": <number>,
+    "y": <number>,
+    "z": <a negative number> // Note: the camera is on (0,0,0), so z should be a nagative value
+  },
+  "width": <number>, // video display width
+  "height": <number>, // video display height
+  "videoFileName": <string>, // video file name
+}
+```
