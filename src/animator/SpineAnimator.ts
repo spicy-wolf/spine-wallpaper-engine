@@ -179,7 +179,7 @@ const generateCursorActionAnimationUpdateFunc = (
         0
       );
       let cursoPositionInWorld = cursorPositionInDom.unproject(Scene.camera);
-      cursoPositionInWorld = cursorPositionInDom
+      cursoPositionInWorld = cursoPositionInWorld
         .sub(Scene.camera.position)
         .normalize();
       cursoPositionInWorld = cursoPositionInWorld.multiplyScalar(
