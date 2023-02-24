@@ -126,3 +126,24 @@ or
 ```
 
 备注：如果要显示一张静态图片，那么 `tileDisplayDuration` 的值是 0。
+
+## 视频类型
+
+`meshes` 数组也可以包含视频动画
+
+### 模板
+
+```
+{
+  "type": "video", // 视频类型，请填 "video"
+  "scale": <number>, // 视频大小， 默认是 1
+  "position": { // 视频的位置
+    "x": <number>,
+    "y": <number>,
+    "z": <a negative number> // 注意：镜头的位置在 (0,0,0), 所以z轴的坐标应该是复数
+  },
+  "width": <number>, // 显示宽度
+  "height": <number>, // 显示高度
+  "videoFileName": <string>, // 视频文件名称
+}
+```
